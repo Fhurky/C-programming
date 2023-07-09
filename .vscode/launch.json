@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/furko/OneDrive/Belgeler/GitHub/C-programming",
-      "program": "c:/Users/furko/OneDrive/Belgeler/GitHub/C-programming/build/Debug/outDebug",
+      "cwd": "c:/Users/furko/OneDrive/Belgeler/GitHub/C-programming/N-aryTreeDictionary",
+      "program": "c:/Users/furko/OneDrive/Belgeler/GitHub/C-programming/N-aryTreeDictionary/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
