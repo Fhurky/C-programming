@@ -1,0 +1,146 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define WORD_LENGHT_MAX 10       //Max word lenght to read
+#define WORD_COUNT_MAX 25        //Max word number in txt file
+
+struct TreeNode {
+    char character;              //The character of the node
+    int isWordEnd;               //Shows whether the word is finished
+    struct TreeNode** children;  //keeps each child nodes
+    char** words;                //Keeps finished word if node have any with arr
+    int wordCount;               //Keeps number of finished word on this node
+};
+
+char** readWordsFromFile(const char*, int*);                      //Word reading function from file
+void insertWord(struct TreeNode* root, const char* word);         //Function to place each word on a tree
+int findWord(struct TreeNode* root, const char* number);          //Print the words in the node if it any have
+
+
+int main() {
+	
+	
+    int wordCount ,i;
+    char** words = readWordsFromFile("sozluk.txt", &wordCount);                   //Reading words from sozluk.txt file and writing on an array
+
+    struct TreeNode* root = (struct TreeNode*)malloc(sizeof(struct TreeNode));    //Creating a root node
+    root->character = '\0';
+    root->isWordEnd = 0;                                                          //isWordEnd must be zero at the begining node
+    root->children = (struct TreeNode**)malloc(26 * sizeof(struct TreeNode*));    //Each node must have 26 possible child
+    root->words = NULL;                                                           //Must be null 
+    root->wordCount = 0;                                                          //Must be zero
+    
+    for (i = 0; i < 26; i++) {                                                    //Must be NULL at the begining to use if we need, we will use with change it
+        root->children[i] = NULL;
+    }
+
+    char number[10]; 
+	for (i = 0; i < wordCount; i++) {
+        insertWord(root, words[i]);
+    }
+		                                                             //Accepting a number (Example:29)
+    while (1) {
+        printf("\nEnter a number string (q to quit): ");
+        scanf("%s", number);
+
+        if (strcmp(number, "q") == 0) {                                           // If the input is 'q', exit from program
+            return 0;
+        }
+        if (!findWord(root, number)) {                                            // If there are words such that, they will be printed in this function and return 1
+            printf("\nThere is no word in the dictionary such that!\n");          // If there are no words such that, they won't be printed and return 0
+        }
+    }
+    
+    return 0;
+}
+
+char** readWordsFromFile(const char* fileName, int* wordCount) {                 //Reading every words from sozluk.txt file and returnin an array that keeps all of words
+    char word[WORD_LENGHT_MAX];                                                  //I think there is no need to explain how this function works, it is obvious and well known
+    char** words = (char**)malloc(WORD_COUNT_MAX * sizeof(char*));
+    int count = 0;
+
+    FILE* file = fopen(fileName, "r");
+    if (file == NULL) {
+        printf("File could not be opened.\n");
+        return NULL;
+    }
+
+    while (fgets(word, WORD_LENGHT_MAX, file) != NULL) {
+        if (count >= WORD_COUNT_MAX) {
+            printf("Maximum word count reached.\n");
+            break;
+        }
+        word[strcspn(word, "\n")] = '\0';
+        words[count] = (char*)malloc((strlen(word) + 1) * sizeof(char));
+        strcpy(words[count], word);
+        count++;
+    }
+
+    fclose(file);
+    *wordCount = count;
+    
+    return words;
+}
+
+void insertWord(struct TreeNode* root, const char* word) {                                                //the process of placing each word in its proper place in the tree
+    struct TreeNode* currentNode = root;
+    int keypad[26] = {2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9};
+    int i,j;
+
+    for (i = 0; word[i] != '\0'; i++) {                                                                  //Using keypad[] function and this line, guessing the which word represents with which number
+        char ch = word[i];
+        int digit = keypad[ch-'a'];
+
+        if (currentNode->children[digit] == NULL) {                                                      //If there is no node for a word, create it
+            struct TreeNode* newNode = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+            newNode->character = digit + '0';
+            newNode->isWordEnd = 0;
+            newNode->children = (struct TreeNode**)malloc(10 * sizeof(struct TreeNode*));
+            newNode->words = NULL;
+            newNode->wordCount = 0;
+
+            for (j = 0; j < 10; j++) {                                                                  //Every node may have 10 child node, because we have 10 key on a telephone keys
+                newNode->children[j] = NULL;
+            }
+
+            currentNode->children[digit] = newNode;
+        }
+
+        currentNode = currentNode->children[digit]; 
+    }
+
+    currentNode->isWordEnd = 1;                                                                         //Marking the finished word node when it finished    
+	                                                                                                  
+    currentNode->wordCount++;                                                                           //Adding the new word to node's word array               
+    currentNode->words = (char**)realloc(currentNode->words, currentNode->wordCount * sizeof(char*));
+    currentNode->words[currentNode->wordCount - 1] = (char*)malloc((strlen(word) + 1) * sizeof(char));
+    strcpy(currentNode->words[currentNode->wordCount - 1], word);
+}
+
+int findWord(struct TreeNode* root, const char* number) {                                                //Finding the node with user ask
+	
+    int i;
+	struct TreeNode* currentNode = root;   
+    
+    for (i = 0; number[i] != '\0'; i++) {                                                                //Moving on the tree with each number that user gave us, in order...
+        int digit = number[i] - '0';
+
+        if (currentNode->children[digit] == NULL) {
+            return 0;
+        }
+        
+        currentNode = currentNode->children[digit];
+    }
+
+    if (currentNode->isWordEnd) {                                                                       //When the node is found that we need, printing tha all word it has and return 1
+        printf("\nThe Word is in the dictionary: ");
+        for (i = 0; i < currentNode->wordCount; i++) {
+            printf(" %s  ", currentNode->words[i]);
+        }
+        printf("\n\n");
+        return 1;
+    } else {
+        return 0;
+    }
+}
